@@ -109,21 +109,26 @@ int main() {
           bool car_ahead = false;
           bool car_left = false;
           bool car_right = false;
+          
           for (int i = 0; i < sensor_fusion.size(); i += 1){
             float d = sensor_fusion[i][6];
             int car_lane = -1;
             
             // Decide the lane of the other car
             if (d > 0 && d < 4) {
+              // Left Car Lane
               car_lane = 0;
             }
             else if (d > 4 && d < 8) {
+              // Middle Car Lane
               car_lane = 1;
             }
             else if (d > 8 && d < 12) {
+              // Right Car Lane
               car_lane = 2;
             }
             
+            // Continue if we don't get any appropriate value
             if (car_lane < 0) {
               continue;
             }
@@ -139,12 +144,15 @@ int main() {
             
             // Where are the other cars?
             if (car_lane == lane) {
+              // Ahead ?
               car_ahead = car_ahead || (check_car_s > car_s && check_car_s - car_s < 30);
             }
             else if (car_lane == lane - 1){
+              // Left ?
               car_left = car_left || (car_s - 30 < check_car_s && car_s + 30 > check_car_s);
             }
             else if (car_lane == lane + 1) {
+              // Right ?
               car_right = car_right || (car_s - 30 < check_car_s && car_s + 30 > check_car_s);
             }
             
@@ -163,6 +171,7 @@ int main() {
               lane += 1;
             }
             else {
+              // Cars everywhere, better to slow down
               speed_change -= 0.224;
             }
           }
@@ -176,6 +185,7 @@ int main() {
             }
             
             if (ref_vel < 49.5) {
+              // No car in front, increase the speed
               speed_change += 0.224;
             }
           } 
@@ -247,9 +257,6 @@ int main() {
           tk :: spline s;
           
           // Set (x, y) points to spline
-          for (auto x: ptsx)
-            std :: cout << x << " ";
-          
           s.set_points(ptsx, ptsy);
           
           // Define the actual (x, y) points we will use for the planner          
@@ -272,6 +279,7 @@ int main() {
           // Fill up the rest of path planner after filling with previous points
           // To always get 50 points
           for (int i = 1; i < 50 - previous_path_x.size(); i += 1){
+            // Change the speed of the car
             ref_vel += speed_change;
             if (ref_vel > 49.5) {
               ref_vel = 49.5;
@@ -280,6 +288,7 @@ int main() {
               ref_vel = 0.224;
             }
             
+            // Fill up the next points
             double N = target_dist / (0.02 * ref_vel / 2.24);
             double x_point = x_add_on + target_x / N;
             double y_point = s(x_point);
